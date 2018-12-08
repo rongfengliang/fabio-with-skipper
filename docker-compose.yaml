@@ -29,6 +29,12 @@ services:
       context: ./
       dockerfile: Dockerfile-ip
     image: dalongrong/openresty-ip
+  ip2:
+    image: dalongrong/openresty-ip
+    environment:
+    - SERVICE_80_NAME=ip2
+    - SERVICE_TAGS=urlprefix-/ip2
+    - SERVICE_80_CHECK_HTTP=/
   skipper2:
     image: dalongrong/skipper
     environment:
@@ -44,6 +50,6 @@ services:
     command: skipper -enable-ratelimits -enable-prometheus-metrics -routes-file /router.eskip
   registor:
     image: gliderlabs/registrator:latest
-    command: consul://consul:8500
+    command: -internal=true -resync 6 consul://consul:8500 
     volumes:
     - "/var/run/docker.sock:/tmp/docker.sock"
