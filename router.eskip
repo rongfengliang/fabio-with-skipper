@@ -1,0 +1,4 @@
+hello: Path("/ip/*")->compress("text/html")-> corsOrigin()->setResponseHeader("TOKEN","dalongdemo")->responseCookie("test-session", "abc", 31536000)->
+ setRequestHeader("TOKEN","dalongdemo")-> "http://ip";
+
+root: Path("/") -> status(200) -> <shunt>;

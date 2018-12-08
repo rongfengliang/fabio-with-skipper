@@ -1,0 +1,49 @@
+version: "3"
+services:
+  fabio:
+    image: fabiolb/fabio
+    ports:
+    - "9999:9999"
+    - "9998:9998"
+    volumes:
+    - "./fabio.properties:/etc/fabio/fabio.properties"
+  consul:
+    image: consul
+    command: agent -config-file=/usr/local/etc/consul/server_agent.json
+    volumes:
+    - "./consul.json://usr/local/etc/consul/server_agent.json"
+    ports:
+    - "8500:8500"
+  web:
+    image: nginx
+    ports:
+    - "80:80"
+    environment:
+    - SERVICE_TAGS=urlprefix-/
+    - SERVICE_80_CHECK_HTTP=/
+    - SERVICE_80_NAME=web-app
+    - SERVICE_CHECK_INTERVAL=10s
+    - SERVICE_CHECK_TIMEOUT=5s
+  ip:
+    build: 
+      context: ./
+      dockerfile: Dockerfile-ip
+    image: dalongrong/openresty-ip
+  skipper2:
+    image: dalongrong/skipper
+    environment:
+    - SERVICE_TAGS=urlprefix-/ip
+    - SERVICE_9090_NAME=skipper
+    - SERVICE_9090_CHECK_HTTP=/
+    - SERVICE_CHECK_INTERVAL=10s
+    - SERVICE_CHECK_TIMEOUT=5s
+    ports:
+    - "9090:9090"
+    volumes:
+    - "./router.eskip:/router.eskip"
+    command: skipper -enable-ratelimits -enable-prometheus-metrics -routes-file /router.eskip
+  registor:
+    image: gliderlabs/registrator:latest
+    command: consul://consul:8500
+    volumes:
+    - "/var/run/docker.sock:/tmp/docker.sock"
